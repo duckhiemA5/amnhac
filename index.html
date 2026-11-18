@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Space</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">♫</div>
+        <span>Music Space</span>
+      </div>
+
+      <p class="side-label">MENU</p>
+      <button class="nav-item active" data-view="home">⌂ <span>Trang chủ</span></button>
+      <button class="nav-item" data-view="library">▤ <span>Thư viện</span></button>
+      <button class="nav-item" data-view="discover">✦ <span>Khám phá nhạc mới</span></button>
+      <button class="nav-item" data-view="upload">＋ <span>Thêm nhạc</span></button>
+
+      <div class="sidebar-bottom">
+        <div class="online-dot"></div>
+        <span>Kết nối thư viện</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">YOUR PERSONAL MUSIC WORLD</div>
+          <h1 id="pageTitle">Khám phá âm nhạc</h1>
+        </div>
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Tìm bài hát, nghệ sĩ...">
+        </div>
+      </header>
+
+      <section class="view active" id="homeView">
+        <div class="hero">
+          <div class="hero-content">
+            <span class="hero-tag">WELCOME TO YOUR SPACE</span>
+            <h2>Âm nhạc của bạn.<br>Thế giới của riêng bạn.</h2>
+            <p>Lưu trữ, khám phá và thưởng thức những giai điệu yêu thích.</p>
+            <button class="primary-btn" data-go="library">Khám phá thư viện →</button>
+          </div>
+          <div class="hero-art">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="vinyl">♫</div>
+            <div class="floating-note">♪</div>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">YOUR COLLECTION</span>
+            <h2>Nhạc gần đây</h2>
+          </div>
+          <button class="text-btn" data-go="library">Xem tất cả →</button>
+        </div>
+        <div class="track-list" id="recentTracks"></div>
+
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">EXPLORE</span>
+            <h2>Thể loại</h2>
+          </div>
+        </div>
+        <div class="genre-grid">
+          <button class="genre-card purple" data-genre="Pop">Pop</button>
+          <button class="genre-card blue" data-genre="Rap">Rap / Hip-hop</button>
+          <button class="genre-card pink" data-genre="R&B">R&B</button>
+          <button class="genre-card orange" data-genre="Rock">Rock</button>
+          <button class="genre-card green" data-genre="EDM">EDM</button>
+          <button class="genre-card dark" data-genre="Khác">Khác</button>
+        </div>
+      </section>
+
+      <section class="view" id="libraryView" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">ALL YOUR FAVORITES</span>
+            <h2>Thư viện nhạc</h2>
+          </div>
+          <select id="sortSelect">
+            <option value="newest">Mới thêm</option>
+            <option value="title">Tên bài hát</option>
+            <option value="artist">Nghệ sĩ</option>
+          </select>
+        </div>
+        <div id="libraryTracks" class="track-list"></div>
+        <p id="emptyLibrary" class="empty-state" hidden>Chưa có bài hát nào. Hãy thêm nhạc vào thư viện nhé!</p>
+      </section>
+
+      <section class="view" id="discoverView" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">MUSIC DISCOVERY BOT</span>
+            <h2>Nhạc mới được phát hiện</h2>
+            <p>Những bài hát đang chờ bạn phê duyệt.</p>
+          </div>
+
+          <button class="primary-btn" id="refreshDiscover">
+            ↻ Làm mới
+          </button>
+        </div>
+
+        <div class="discover-summary">
+          <span>Đang chờ duyệt: </span>
+          <strong id="pendingCount">0</strong>
+        </div>
+
+        <div id="discoverTracks" class="track-list"></div>
+
+        <p id="discoverMessage" class="empty-state">
+          Đang tải danh sách nhạc mới...
+        </p>
+      </section>
+
+      <section class="view" id="uploadView" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">GROW YOUR COLLECTION</span>
+            <h2>Thêm nhạc vào Music Space</h2>
+          </div>
+        </div>
+
+        <div class="upload-grid">
+          <form class="panel" id="uploadForm">
+            <div class="panel-icon">♫</div>
+            <h3>Tải file âm thanh</h3>
+            <p>Tải file nhạc lên kho lưu trữ của bạn.</p>
+
+            <label for="audioFile">Chọn file nhạc</label>
+            <input
+              type="file"
+              id="audioFile"
+              accept=".mp3,.wav,.ogg,.oga,.m4a,.aac,.flac,.alac,.opus,.mp4,audio/*"
+              required
+            >
+
+            <label for="fileTitle">Tên bài hát</label>
+            <input id="fileTitle" type="text" placeholder="Tên bài hát">
+
+            <label for="fileArtist">Nghệ sĩ</label>
+            <input id="fileArtist" type="text" placeholder="Tên nghệ sĩ">
+
+            <label for="fileGenre">Thể loại</label>
+            <select id="fileGenre">
+              <option>Pop</option><option>Rap</option><option>R&B</option>
+              <option>Rock</option><option>EDM</option><option>Khác</option>
+            </select>
+
+            <button class="primary-btn full-btn" type="submit">Tải lên thư viện</button>
+          </form>
+
+          <form class="panel" id="linkForm">
+            <div class="panel-icon">↗</div>
+            <h3>Thêm bằng đường link</h3>
+            <p>Dán link bài hát từ nền tảng có hỗ trợ.</p>
+
+            <label for="musicUrl">Đường link bài hát</label>
+            <input id="musicUrl" type="url" placeholder="https://..." required>
+
+            <label for="linkTitle">Tên bài hát</label>
+            <input id="linkTitle" type="text" placeholder="Tên bài hát" required>
+
+            <label for="linkArtist">Nghệ sĩ</label>
+            <input id="linkArtist" type="text" placeholder="Tên nghệ sĩ">
+
+            <label for="linkGenre">Thể loại</label>
+            <select id="linkGenre">
+              <option>Pop</option><option>Rap</option><option>R&B</option>
+              <option>Rock</option><option>EDM</option><option>Khác</option>
+            </select>
+
+            <button class="primary-btn full-btn" type="submit">Thêm vào thư viện</button>
+          </form>
+        </div>
+        <p class="form-note" id="formMessage"></p>
+        <p class="hint">Lưu ý: link riêng tư, link yêu cầu đăng nhập hoặc link không có quyền nhúng có thể không phát được.</p>
+      </section>
+
+      <footer class="footer">
+        <span>Music Space</span>
+        <span>Made for music lovers ♡</span>
+      </footer>
+    </main>
+  </div>
+
+  <div class="player">
+    <div class="now-playing">
+      <div class="cover-small">♫</div>
+      <div class="now-info">
+        <strong id="nowTitle">Chưa phát nhạc</strong>
+        <span id="nowArtist">Chọn một bài hát để bắt đầu</span>
+      </div>
+    </div>
+    
+    <div class="player-center">
+      <div class="player-controls">
+        <button id="prevBtn" title="Bài trước">⏮</button>
+        <button id="playBtn" class="play-button" title="Phát / Tạm dừng">▶</button>
+        <button id="nextBtn" title="Bài tiếp">⏭</button>
+      </div>
+      <div class="progress-row">
+        <span id="currentTime">0:00</span>
+        <input id="progressBar" type="range" min="0" max="100" value="0">
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="volume-area">
+      <span>♫</span>
+      <input id="volumeBar" type="range" min="0" max="1" step="0.01" value="0.8">
+    </div>
+  </div>
+
+  <audio id="audioPlayer" preload="metadata"></audio>
+  <div id="embedPlayer" class="embed-player" hidden></div>
+
+  
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="script.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlcYCrPPLoICJMdsUpvOXJf5VeIIxyEdg",
+      authDomain: "music-88407.firebaseapp.com",
+      projectId: "music-88407",
+      storageBucket: "music-88407.firebasestorage.app",
+      messagingSenderId: "708153685328",
+      appId: "1:708153685328:web:6849d298ecb240e562a855",
+      measurementId: "G-FMKR622THX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    console.log("Đã kết nối Firebase!");
+  </script>
+</body>
+</html>
